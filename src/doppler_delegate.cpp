@@ -5,12 +5,12 @@
  *
  * \author Álvaro Cebrián Juan, 2018. acebrianjuan(at)gmail.com
  *
- * -------------------------------------------------------------------------
+ * -----------------------------------------------------------------------
  *
- * Copyright (C) 2010-2018  (see AUTHORS file for a list of contributors)
+ * Copyright (C) 2010-2019  (see AUTHORS file for a list of contributors)
  *
  * GNSS-SDR is a software defined Global Navigation
- *          Satellite Systems receiver
+ *      Satellite Systems receiver
  *
  * This file is part of GNSS-SDR.
  *
@@ -27,154 +27,107 @@
  * You should have received a copy of the GNU General Public License
  * along with GNSS-SDR. If not, see <https://www.gnu.org/licenses/>.
  *
- * -------------------------------------------------------------------------
+ * -----------------------------------------------------------------------
  */
 
 
 #include "doppler_delegate.h"
-
-#include <QPainter>
 #include <QApplication>
 #include <QDebug>
+#include <QPainter>
+#include <limits>
 
 #define SPARKLINE_MIN_EM_WIDTH 10
 
-Doppler_Delegate::Doppler_Delegate(QWidget *parent) : QStyledItemDelegate(parent)
+DopplerDelegate::DopplerDelegate(QWidget *parent) : QStyledItemDelegate(parent)
 {
-    qDebug() << "Doppler_Delegate" << "\t" << "Constructed";
+    // Default buffer size.
+    m_bufferSize = 100;
 }
 
-Doppler_Delegate::~Doppler_Delegate()
+DopplerDelegate::~DopplerDelegate()
 {
-
 }
 
-void Doppler_Delegate::paint(QPainter *painter, const QStyleOptionViewItem &option,
-                             const QModelIndex &index) const
+void DopplerDelegate::setBufferSize(int size)
+{
+    m_bufferSize = size;
+}
+
+void DopplerDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option,
+    const QModelIndex &index) const
 {
     QList<QPointF> points;
     QVector<double> x_data, y_data;
     QList<QVariant> var = index.data(Qt::DisplayRole).toList();
-    for(int i = 0; i < var.size(); i++)
+    for (int i = 0; i < var.size(); i++)
     {
         points << var.at(i).toPointF();
         x_data << var.at(i).toPointF().x();
         y_data << var.at(i).toPointF().y();
     }
 
+    double min_x = std::numeric_limits<double>::max();
+    double max_x = -std::numeric_limits<double>::max();
 
-    QCustomPlot *plot;
+    double min_y = std::numeric_limits<double>::max();
+    double max_y = -std::numeric_limits<double>::max();
 
-    if (plots.find(index.row()) == plots.end())
-    {
-        QColor text_color = QColor("#EFF0F1");
-        QColor grid_color = QColor("#4D4D4D");
-        QColor background_color = QColor("#333333");
-        QColor marker_color = QColor("#FFAA00");
-
-        plot = new QCustomPlot();
-        plots[index.row()] = plot;
-
-        plot->setVisible(false);
-        plot->addGraph();
-
-        QPen marker_pen;
-        marker_color.setAlpha(150);
-        marker_pen.setColor(marker_color);
-        plot->graph(0)->setPen(marker_pen);
-        plot->graph(0)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssDisc, 2));
-
-        plot->xAxis->setLabel("RX Time [s]");
-        plot->xAxis->setLabelColor(text_color);
-        plot->xAxis->setTickLabelRotation(30);
-        plot->xAxis->setSubTicks(false);
-
-        plot->yAxis->setLabel("Doppler [Hz]");
-        plot->yAxis->setLabelColor(text_color);
-        plot->yAxis->setSubTicks(false);
-
-        plot->xAxis2->setVisible(true);
-        plot->xAxis2->setTicks(false);
-        plot->xAxis2->setTickLabels(false);
-        plot->xAxis2->setBasePen(Qt::NoPen);
-
-        plot->yAxis2->setVisible(true);
-        plot->yAxis2->setTicks(false);
-        plot->yAxis2->setTickLabels(false);
-        plot->yAxis2->setBasePen(Qt::NoPen);
-
-        // add title layout element:
-        QString title = index.model()->headerData(index.column(), Qt::Horizontal, Qt::DisplayRole).toString();
-        title.append(" CH ").append(index.model()->data(index.siblingAtColumn(0), Qt::DisplayRole).toString());
-        index.model()->headerData(index.column(), Qt::Horizontal, Qt::DisplayRole).toString();
-        plot->xAxis2->setLabel(title);
-        plot->xAxis2->setLabelFont(QFont("sans", 10, QFont::Bold));
-        plot->xAxis2->setLabelColor(text_color);
-
-        // set some pens, brushes and backgrounds:
-        plot->xAxis->setBasePen(QPen(text_color, 1));
-        plot->yAxis->setBasePen(QPen(text_color, 1));
-
-        plot->xAxis->setTickPen(QPen(text_color, 1));
-        plot->yAxis->setTickPen(QPen(text_color, 1));
-
-        plot->xAxis->setSubTickPen(QPen(text_color, 1));
-        plot->yAxis->setSubTickPen(QPen(text_color, 1));
-
-        plot->xAxis->setTickLabelColor(text_color);
-        plot->yAxis->setTickLabelColor(text_color);
-
-        plot->xAxis->grid()->setPen(QPen(grid_color, 1, Qt::SolidLine));
-        plot->yAxis->grid()->setPen(QPen(grid_color, 1, Qt::SolidLine));
-
-        plot->xAxis->grid()->setZeroLinePen(Qt::NoPen);
-        plot->yAxis->grid()->setZeroLinePen(Qt::NoPen);
-
-        QCPLineEnding le = QCPLineEnding::esHalfBar;
-        le.setInverted(true);
-        plot->xAxis->setUpperEnding(le);
-        plot->yAxis->setUpperEnding(QCPLineEnding::esHalfBar);
-
-        plot->setBackground(QBrush(background_color, Qt::SolidPattern));
-        plot->axisRect()->setBackground(QBrush(background_color, Qt::SolidPattern));
-    }
-    else
-    {
-        plot = plots.at(index.row());
-    }
-
-    plot->graph(0)->setData(x_data, y_data);
-    plot->graph(0)->rescaleAxes(true);
-    plot->xAxis->setRange(x_data.first(), x_data.last());
-    plot->replot();
-
-
-    double min_y = 0;
-    double max_y = 1;
     int em_w = option.fontMetrics.height();
-    int content_w = option.rect.width() - (em_w / 4);
-    int content_h = option.fontMetrics.height();
+
+    int hGap = em_w / 4;
+    int vGap = (option.rect.height() - option.fontMetrics.height()) / 2;
+    int cGap = em_w / 4;
+
+    int cellWidth = option.rect.width();
+    int cellHeight = option.rect.height();
+
+    int contentWidth = cellWidth - 2 * hGap;
+    int contentHeight = option.fontMetrics.height();
+
+    int usableContentWidth = contentWidth - cGap;
+    int textWidth = option.fontMetrics.width("-00000.0");
+    int sparklineWidth = usableContentWidth - textWidth;
+
+    // Offset for translating the origin of the painting coordinate system to the top left corner of the cell.
+    QPoint offset = option.rect.topLeft();
+
+    // Translated origins.
+    QPoint cellOrigin = QPoint(0, 0);
+    QPoint sparklineOrigin = QPoint(hGap, vGap);
+    QPoint textOrigin = QPoint(hGap + sparklineWidth + cGap, vGap);
+
+    // Translated rectangles.
+    QRect cellRect = QRect(cellOrigin, QSize(cellWidth, cellHeight));
+    QRect sparklineRect = QRect(sparklineOrigin, QSize(sparklineWidth, contentHeight));
+    QRect textRect = QRect(textOrigin, QSize(textWidth, contentHeight));
+
     QPointF val;
-    qreal idx = 0.0;
-    qreal step_w = em_w / 10.0;
-    qreal steps = content_w / step_w;
     QVector<QPointF> fpoints;
-
-
     QStyledItemDelegate::paint(painter, option, index);
 
-    if (points.isEmpty() || steps < 1.0 || content_h <= 0)
+    if (points.isEmpty() || m_bufferSize < 1.0 || contentHeight <= 0)
     {
         return;
     }
 
-    while((qreal) points.length() > steps)
+    while (points.length() > m_bufferSize)
     {
         points.removeFirst();
     }
 
     foreach (val, points)
     {
+        if (val.x() < min_x)
+        {
+            min_x = val.x();
+        }
+
+        if (val.x() > max_x)
+        {
+            max_x = val.x();
+        }
+
         if (val.y() < min_y)
         {
             min_y = val.y();
@@ -188,8 +141,9 @@ void Doppler_Delegate::paint(QPainter *painter, const QStyleOptionViewItem &opti
 
     foreach (val, points)
     {
-        fpoints.append(QPointF(idx, (qreal) content_h - (content_h * (val.y() - min_y) / (max_y - min_y))));
-        idx = idx + step_w;
+        double x = sparklineWidth * (val.x() - min_x) / (max_x - min_x);
+        double y = contentHeight - (contentHeight * (val.y() - min_y) / (max_y - min_y));
+        fpoints.append(QPointF(x, y));
     }
 
     QStyleOptionViewItem option_vi = option;
@@ -205,14 +159,16 @@ void Doppler_Delegate::paint(QPainter *painter, const QStyleOptionViewItem &opti
     }
 
     QPalette::ColorGroup cg = option_vi.state & QStyle::State_Enabled
-            ? QPalette::Normal : QPalette::Disabled;
+                                  ? QPalette::Normal
+                                  : QPalette::Disabled;
     if (cg == QPalette::Normal && !(option_vi.state & QStyle::State_Active))
         cg = QPalette::Inactive;
 #if defined(Q_OS_WIN)
     if (option_vi.state & QStyle::State_Selected)
     {
 #else
-    if ((option_vi.state & QStyle::State_Selected) && !(option_vi.state & QStyle::State_MouseOver)) {
+    if ((option_vi.state & QStyle::State_Selected) && !(option_vi.state & QStyle::State_MouseOver))
+    {
 #endif
         painter->setPen(option_vi.palette.color(cg, QPalette::HighlightedText));
     }
@@ -221,49 +177,89 @@ void Doppler_Delegate::paint(QPainter *painter, const QStyleOptionViewItem &opti
         painter->setPen(option_vi.palette.color(cg, QPalette::Text));
     }
 
+    // Enable antialiasing.
     painter->setRenderHint(QPainter::Antialiasing, true);
-    painter->translate(
-                option.rect.x() + (em_w / 8) + 0.5,
-                option.rect.y() + ((option.rect.height() - option.fontMetrics.height()) / 2));
+
+    // Translate painting origin to sparklineOrigin.
+    painter->translate(offset.x() + hGap, offset.y() + vGap);
+
+    // Fill area below the Doppler sparkline.
+    QPointF startPoint(fpoints.first().x(), contentHeight);
+    QPointF endPoint(fpoints.last().x(), contentHeight);
+    fpoints.push_front(startPoint);
+    fpoints.push_back(endPoint);
+
+    QLinearGradient gradient(QPointF(0, 0), QPointF(0, contentHeight));
+    gradient.setColorAt(1, Qt::white);
+    gradient.setColorAt(0, Qt::gray);
+
+    painter->setBrush(QBrush(gradient));
+    painter->setPen(Qt::NoPen);
+    painter->drawPolygon(QPolygonF(fpoints));
+
+    // Draw Doppler sparkline.
+    fpoints.removeFirst();
+    fpoints.removeLast();
+    painter->setPen(Qt::black);
     painter->drawPolyline(QPolygonF(fpoints));
 
+    // Translate painting origin to cellOrigin.
+    painter->translate(-hGap, -vGap);
+
+    // Display value of the last Doppler sample next to the sparkline.
+    painter->drawText(textRect, QString::number(var.last().toPointF().y(), 'f', 1));
+
+    // Draw visual guides for debugging.
+    //drawGuides(painter, cellRect, sparklineRect, textRect);
+
     painter->restore();
-
-
-    /*
-    // DEBUG: Paint borders.
-    painter->setPen(Qt::red); // Red pen.
-
-    painter->drawRect(option.rect);  // Cell border.
-
-    painter->drawRect(option.rect.x() + (em_w / 8) + 0.5,
-                      option.rect.y() + ((option.rect.height() - option.fontMetrics.height()) / 2),
-                      content_w, content_h);  // Sparkline border.
-
-    painter->setPen(Qt::cyan); // cyan pen.
-    painter->drawLine(option.rect.x(), option.rect.y() + option.rect.height() / 2,
-                      option.rect.x() + option.rect.width(), option.rect.y() + option.rect.height() / 2); // Centerline.
-    */
 }
 
-QSize Doppler_Delegate::sizeHint(const QStyleOptionViewItem &option,
-                                 const QModelIndex &index) const
+QSize DopplerDelegate::sizeHint(const QStyleOptionViewItem &option,
+    const QModelIndex &index) const
 {
     return QSize(option.fontMetrics.height() * SPARKLINE_MIN_EM_WIDTH, QStyledItemDelegate::sizeHint(option, index).height());
 }
 
-bool Doppler_Delegate::editorEvent(QEvent *event, QAbstractItemModel *model, const QStyleOptionViewItem &option, const QModelIndex &index)
+/*!
+  Draws a set of visual guides to assist in the debugging of the delegate design.
+ */
+void DopplerDelegate::drawGuides(QPainter *painter, QRect cellRect, QRect sparklineRect, QRect textRect) const
 {
-    if ( event->type() == QEvent::MouseButtonRelease )
-    {
-        qDebug() << "Click : " << index.row();
+    // Set pen color to red.
+    painter->setPen(Qt::red);
+    painter->setBrush(Qt::NoBrush);
 
-        QCustomPlot *plot = plots.at(index.row());
-        if (!plot->isVisible())
-        {
-            plot->setGeometry(0, 0, 300, 200);
-            plot->setVisible(true);
-        }
-    }
-    return true;
+    // Draw cell border.
+    painter->drawRect(cellRect);
+
+    // Draw sparkline border.
+    painter->drawRect(sparklineRect);
+
+    // Draw text border.
+    painter->drawRect(textRect);
+
+    // Draw centerline in cyan.
+    painter->setPen(Qt::cyan);
+    painter->drawLine(cellRect.x(), cellRect.y() + cellRect.height() / 2,
+        cellRect.x() + cellRect.width(), cellRect.y() + cellRect.height() / 2);
+
+    // Create a new pen with increased width for drawing origins.
+    QPen pen = QPen();
+    pen.setWidth(5);
+
+    // Draw cell origin.
+    pen.setColor(Qt::red);
+    painter->setPen(pen);
+    painter->drawPoint(cellRect.topLeft());
+
+    // Draw sparkline origin.
+    pen.setColor(Qt::green);
+    painter->setPen(pen);
+    painter->drawPoint(sparklineRect.topLeft());
+
+    // Draw text origin.
+    pen.setColor(Qt::blue);
+    painter->setPen(pen);
+    painter->drawPoint(textRect.topLeft());
 }

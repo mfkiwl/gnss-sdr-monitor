@@ -5,12 +5,12 @@
  *
  * \author Álvaro Cebrián Juan, 2018. acebrianjuan(at)gmail.com
  *
- * -------------------------------------------------------------------------
+ * -----------------------------------------------------------------------
  *
- * Copyright (C) 2010-2018  (see AUTHORS file for a list of contributors)
+ * Copyright (C) 2010-2019  (see AUTHORS file for a list of contributors)
  *
  * GNSS-SDR is a software defined Global Navigation
- *          Satellite Systems receiver
+ *      Satellite Systems receiver
  *
  * This file is part of GNSS-SDR.
  *
@@ -27,53 +27,27 @@
  * You should have received a copy of the GNU General Public License
  * along with GNSS-SDR. If not, see <https://www.gnu.org/licenses/>.
  *
- * -------------------------------------------------------------------------
+ * -----------------------------------------------------------------------
  */
 
 
-#ifndef CONSTELLATION_DELEGATE_H
-#define CONSTELLATION_DELEGATE_H
+#ifndef GNSS_SDR_MONITOR_CONSTELLATION_DELEGATE_H_
+#define GNSS_SDR_MONITOR_CONSTELLATION_DELEGATE_H_
 
 #include <QStyledItemDelegate>
-#include <QTimer>
-#include "qcustomplot.h"
 
-class Constellation_Delegate : public QStyledItemDelegate
+class ConstellationDelegate : public QStyledItemDelegate
 {
-    Q_OBJECT
-
 public:
-    Constellation_Delegate(QWidget *parent = nullptr);
-    ~Constellation_Delegate();
+    ConstellationDelegate(QWidget *parent = nullptr);
+    ~ConstellationDelegate();
 
 protected:
     void paint(QPainter *painter, const QStyleOptionViewItem &option,
-               const QModelIndex &index) const;
+        const QModelIndex &index) const;
 
     QSize sizeHint(const QStyleOptionViewItem &option,
-                   const QModelIndex &index) const;
-
-    bool editorEvent(QEvent *event, QAbstractItemModel *model,
-                     const QStyleOptionViewItem &option, const QModelIndex &index);
-
-    bool helpEvent(QHelpEvent *event, QAbstractItemView *view,
-                   const QStyleOptionViewItem &option, const QModelIndex &index);
-
-private:
-    mutable std::vector<int> channels_id;
-    mutable std::map<int, QCustomPlot*> plots;
-
-    QTimer *timer;
-    int button_x, button_y;
-    //int button_w, button_h;
-    //QRect button_r;
-    //QVector<double> x_data, y_data;
-    QPushButton *button_i;
-
-signals:
-
-public slots:
-
+        const QModelIndex &index) const;
 };
 
-#endif // CONSTELLATION_DELEGATE_H
+#endif  // GNSS_SDR_MONITOR_CONSTELLATION_DELEGATE_H_

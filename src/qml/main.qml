@@ -1,52 +1,86 @@
+// clang-format off
+
 import QtQuick 2.0
 import QtQuick.Window 2.0
 import QtLocation 5.6
 import QtPositioning 5.6
+import QtQuick.Controls 2.2
+import QtQuick.Layouts 1.3
 
-Item {
-    //width: 512
-    //height: 512
-    //visible: true
-    id: root
+Map
+{
     property variant cttc: QtPositioning.coordinate(41.27504, 1.987709)
 
-    Map
+    id: map
+    height: 300
+
+    plugin: Plugin
     {
-        id: map
-        anchors.fill: parent
-        plugin: Plugin
+        id: mapPlugin
+        name: "esri"
+
+        PluginParameter
         {
-            id: mapPlugin
-            name: "osm"
+            name: "esri.mapping.maximumZoomLevel"
+            value: 19.90
         }
-        center: cttc
-        zoomLevel: 15
+    }
+    center: cttc
+    zoomLevel: 15
 
-        MapQuickItem
+    MapPolyline // Path of the vehicle.
+    {
+        line.width: 3
+        line.color: "red"
+        opacity: 0.3
+        path: m_monitor_pvt_wrapper.path
+        visible: show_path.checked
+    }
+
+    MapQuickItem // Current position of the vehicle.
+    {
+        id: vehicle
+        coordinate: m_monitor_pvt_wrapper.position
+
+        anchorPoint.x: icon.width/2
+        anchorPoint.y: icon.height/2
+
+        sourceItem: Rectangle
         {
-            id: marker
-            coordinate: cttc
-            anchorPoint.x: icon.width * 0.5
-            anchorPoint.y: icon.height * 0.5
+            id: icon
+            width: 10
+            height: 10
+            radius: width/2
+            color: "red"
+        }
 
-            sourceItem: Rectangle
-            {
-                id: icon
-                width: 10
-                height: 10
-                radius: width/2
-                color: "red"
-            }
+    }
 
-            function recenter(lat, lon)
+    ColumnLayout
+    {
+        CheckBox // Show Path CheckBox.
+        {
+            id: show_path
+            checked: true
+            text: "Show Path"
+        }
+
+        CheckBox // Follow CheckBox.
+        {
+            id: follow
+            checked: true
+            text: "Follow"
+        }
+    }
+
+    Connections
+    {
+        target: vehicle
+        onCoordinateChanged:
+        {
+            if (follow.checked)
             {
-                clearMapItems();
-                marker.coordinate.latitude = lat;
-                marker.coordinate.longitude = lon;
-                addMapItem(marker);
-                map.center.latitude = lat;
-                map.center.longitude = lon;
-                map.update();
+                map.center = m_monitor_pvt_wrapper.position;
             }
         }
     }

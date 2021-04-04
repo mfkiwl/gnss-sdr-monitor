@@ -5,12 +5,12 @@
  *
  * \author Álvaro Cebrián Juan, 2018. acebrianjuan(at)gmail.com
  *
- * -------------------------------------------------------------------------
+ * -----------------------------------------------------------------------
  *
- * Copyright (C) 2010-2018  (see AUTHORS file for a list of contributors)
+ * Copyright (C) 2010-2019  (see AUTHORS file for a list of contributors)
  *
  * GNSS-SDR is a software defined Global Navigation
- *          Satellite Systems receiver
+ *      Satellite Systems receiver
  *
  * This file is part of GNSS-SDR.
  *
@@ -27,55 +27,59 @@
  * You should have received a copy of the GNU General Public License
  * along with GNSS-SDR. If not, see <https://www.gnu.org/licenses/>.
  *
- * -------------------------------------------------------------------------
+ * -----------------------------------------------------------------------
  */
 
 
-#ifndef CHANNEL_TABLE_MODEL_H
-#define CHANNEL_TABLE_MODEL_H
+#ifndef GNSS_SDR_MONITOR_CHANNEL_TABLE_MODEL_H_
+#define GNSS_SDR_MONITOR_CHANNEL_TABLE_MODEL_H_
 
-#include <QAbstractTableModel>
+#include "gnss_synchro.pb.h"
 #include <boost/circular_buffer.hpp>
-#include "gnss_synchro.h"
+#include <QAbstractTableModel>
 
-class Channel_Table_Model : public QAbstractTableModel
+class ChannelTableModel : public QAbstractTableModel
 {
 public:
-    Channel_Table_Model();
+    ChannelTableModel();
 
-    void populate_channels(std::vector<Gnss_Synchro> stocks);
-    void populate_channel(Gnss_Synchro ch);
-    void clear_channel(int ch_id);
-    void clear_channels();
-    QString get_signal_pretty_name(Gnss_Synchro ch);
-    QList<QVariant> get_list_from_cbuf(boost::circular_buffer<double> cbuf);
-    int get_columns();
-    void set_buffer_size();
+    void update();
 
-    // List of virual functions that must be implemented in a read-only table model.
+    void populateChannels(const gnss_sdr::Observables *m_stocks);
+    void populateChannel(const gnss_sdr::GnssSynchro *ch);
+    void clearChannel(int ch_id);
+    void clearChannels();
+    QString getSignalPrettyName(const gnss_sdr::GnssSynchro *ch);
+    QList<QVariant> getListFromCbuf(boost::circular_buffer<double> cbuf);
+    int getColumns();
+    void setBufferSize();
+    int getChannelId(int row);
+
+    // List of virtual functions that must be implemented in a read-only table model.
     int rowCount(const QModelIndex &parent) const;
     int columnCount(const QModelIndex &parent) const;
     QVariant data(const QModelIndex &index, int role) const;
     QVariant headerData(int section, Qt::Orientation orientation, int role) const;
 
+public slots:
+    gnss_sdr::GnssSynchro getChannelData(int key);
 
 protected:
-    int columns;
-    int buffer_size;
-    std::vector<Gnss_Synchro> stocks;
+    int m_columns;
+    int m_bufferSize;
+    gnss_sdr::Observables m_stocks;
 
-    std::vector<int> channels_id;
-    std::map<int, Gnss_Synchro> channels;
-    std::map<int, QString> channels_signal;
-    std::map<int, boost::circular_buffer<double>> channels_time;
-    std::map<int, boost::circular_buffer<double>> channels_prompt_i;
-    std::map<int, boost::circular_buffer<double>> channels_prompt_q;
-    std::map<int, boost::circular_buffer<double>> channels_cn0;
-    std::map<int, boost::circular_buffer<double>> channels_doppler;
+    std::vector<int> m_channelsId;
+    std::map<int, gnss_sdr::GnssSynchro> m_channels;
+    std::map<int, QString> m_channelsSignal;
+    std::map<int, boost::circular_buffer<double>> m_channelsTime;
+    std::map<int, boost::circular_buffer<double>> m_channelsPromptI;
+    std::map<int, boost::circular_buffer<double>> m_channelsPromptQ;
+    std::map<int, boost::circular_buffer<double>> m_channelsCn0;
+    std::map<int, boost::circular_buffer<double>> m_channelsDoppler;
 
-public slots:
-    Gnss_Synchro get_channel_data(int key);
-
+private:
+    std::map<std::string, QString> m_mapSignalPrettyName;
 };
 
-#endif // CHANNEL_TABLE_MODEL_H
+#endif  // GNSS_SDR_MONITOR_CHANNEL_TABLE_MODEL_H_

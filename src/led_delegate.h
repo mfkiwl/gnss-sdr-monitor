@@ -5,12 +5,12 @@
  *
  * \author Álvaro Cebrián Juan, 2018. acebrianjuan(at)gmail.com
  *
- * -------------------------------------------------------------------------
+ * -----------------------------------------------------------------------
  *
- * Copyright (C) 2010-2018  (see AUTHORS file for a list of contributors)
+ * Copyright (C) 2010-2019  (see AUTHORS file for a list of contributors)
  *
  * GNSS-SDR is a software defined Global Navigation
- *          Satellite Systems receiver
+ *      Satellite Systems receiver
  *
  * This file is part of GNSS-SDR.
  *
@@ -27,24 +27,23 @@
  * You should have received a copy of the GNU General Public License
  * along with GNSS-SDR. If not, see <https://www.gnu.org/licenses/>.
  *
- * -------------------------------------------------------------------------
+ * -----------------------------------------------------------------------
  */
 
 
-#ifndef LED_DELEGATE_H
-#define LED_DELEGATE_H
+#ifndef GNSS_SDR_MONITOR_LED_DELEGATE_H_
+#define GNSS_SDR_MONITOR_LED_DELEGATE_H_
 
 #include <QStyledItemDelegate>
 
-class LED_Delegate : public QStyledItemDelegate
+class LedDelegate : public QStyledItemDelegate
 {
 public:
-    LED_Delegate(QObject *parent = nullptr);
-    ~LED_Delegate();
+    LedDelegate(QObject *parent = nullptr);
+    ~LedDelegate();
 
     void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
     QSize sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const;
-
 };
 
-#endif // LED_DELEGATE_H
+#endif  // GNSS_SDR_MONITOR_LED_DELEGATE_H_

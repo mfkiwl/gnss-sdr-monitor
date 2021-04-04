@@ -5,12 +5,12 @@
  *
  * \author Álvaro Cebrián Juan, 2018. acebrianjuan(at)gmail.com
  *
- * -------------------------------------------------------------------------
+ * -----------------------------------------------------------------------
  *
- * Copyright (C) 2010-2018  (see AUTHORS file for a list of contributors)
+ * Copyright (C) 2010-2019  (see AUTHORS file for a list of contributors)
  *
  * GNSS-SDR is a software defined Global Navigation
- *          Satellite Systems receiver
+ *      Satellite Systems receiver
  *
  * This file is part of GNSS-SDR.
  *
@@ -27,27 +27,24 @@
  * You should have received a copy of the GNU General Public License
  * along with GNSS-SDR. If not, see <https://www.gnu.org/licenses/>.
  *
- * -------------------------------------------------------------------------
+ * -----------------------------------------------------------------------
  */
 
 
 #include "led_delegate.h"
-
-#include <QPainter>
 #include <QDebug>
+#include <QPainter>
 
-LED_Delegate::LED_Delegate(QObject *parent)
+LedDelegate::LedDelegate(QObject *parent)
 {
-    qDebug() << "LED_Delegate" << "\t" << "Constructed";
 }
 
-LED_Delegate::~LED_Delegate()
+LedDelegate::~LedDelegate()
 {
-
 }
 
-void LED_Delegate::paint(QPainter *painter, const QStyleOptionViewItem &option,
-                         const QModelIndex &index) const
+void LedDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option,
+    const QModelIndex &index) const
 {
     if (option.state & QStyle::State_Selected)
         painter->fillRect(option.rect, option.palette.highlight());
@@ -72,27 +69,16 @@ void LED_Delegate::paint(QPainter *painter, const QStyleOptionViewItem &option,
     painter->setRenderHint(QPainter::Antialiasing, true);
     painter->setPen(Qt::NoPen);
 
-    /*
-    if (option.state & QStyle::State_Selected)
-    {
-        painter->setBrush(option.palette.highlightedText());
-    }
-    else
-    {
-        painter->setBrush(option.palette.text());
-    }
-    */
-
     painter->drawEllipse(QRectF(option.rect.x() + option.rect.width() / 2 - radius,
-                                option.rect.y() + option.rect.height() / 2 - radius,
-                                2 * radius, 2 * radius));
+        option.rect.y() + option.rect.height() / 2 - radius,
+        2 * radius, 2 * radius));
 
     painter->restore();
 }
 
-QSize LED_Delegate::sizeHint(const QStyleOptionViewItem &option,
-                             const QModelIndex &index) const
+QSize LedDelegate::sizeHint(const QStyleOptionViewItem &option,
+    const QModelIndex &index) const
 {
     return QSize(QStyledItemDelegate::sizeHint(option, index).height(),
-                 QStyledItemDelegate::sizeHint(option, index).height());
+        QStyledItemDelegate::sizeHint(option, index).height());
 }

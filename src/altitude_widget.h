@@ -1,8 +1,9 @@
 /*!
- * \file main.cpp
- * \brief Main file of the gnss-sdr-monitor program.
+ * \file altitude_widget.h
+ * \brief Interface of a widget that shows the altitude in a chart as
+ * reported by the receiver.
  *
- * \author Álvaro Cebrián Juan, 2018. acebrianjuan(at)gmail.com
+ * \author Álvaro Cebrián Juan, 2019. acebrianjuan(at)gmail.com
  *
  * -----------------------------------------------------------------------
  *
@@ -30,20 +31,38 @@
  */
 
 
-#include "main_window.h"
-#include <QApplication>
-#include <QDesktopWidget>
-#include <QStyle>
+#ifndef GNSS_SDR_MONITOR_ALTITUDE_WIDGET_H_
+#define GNSS_SDR_MONITOR_ALTITUDE_WIDGET_H_
 
-int main(int argc, char *argv[])
+#include <boost/circular_buffer.hpp>
+#include <QChartView>
+#include <QLineSeries>
+#include <QWidget>
+
+class AltitudeWidget : public QWidget
 {
-    QApplication app(argc, argv);
-    app.setOrganizationName("gnss-sdr");
-    app.setOrganizationDomain("gnss-sdr.org");
-    app.setApplicationName("gnss-sdr-monitor");
+    Q_OBJECT
 
-    MainWindow w;
-    w.show();
+public:
+    explicit AltitudeWidget(QWidget *parent = nullptr);
 
-    return app.exec();
-}
+public slots:
+    void addData(qreal tow, qreal altitude);
+    void redraw();
+    void clear();
+    void setBufferSize(size_t size);
+
+private:
+    size_t m_bufferSize;
+    boost::circular_buffer<QPointF> m_altitudeBuffer;
+    QtCharts::QChartView *m_chartView = nullptr;
+    QtCharts::QLineSeries *m_series = nullptr;
+
+    double min_x;
+    double min_y;
+
+    double max_x;
+    double max_y;
+};
+
+#endif  // GNSS_SDR_MONITOR_ALTITUDE_WIDGET_H_

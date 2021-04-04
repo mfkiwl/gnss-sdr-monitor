@@ -4,12 +4,12 @@
  *
  * \author Álvaro Cebrián Juan, 2018. acebrianjuan(at)gmail.com
  *
- * -------------------------------------------------------------------------
+ * -----------------------------------------------------------------------
  *
- * Copyright (C) 2010-2018  (see AUTHORS file for a list of contributors)
+ * Copyright (C) 2010-2019  (see AUTHORS file for a list of contributors)
  *
  * GNSS-SDR is a software defined Global Navigation
- *          Satellite Systems receiver
+ *      Satellite Systems receiver
  *
  * This file is part of GNSS-SDR.
  *
@@ -26,72 +26,106 @@
  * You should have received a copy of the GNU General Public License
  * along with GNSS-SDR. If not, see <https://www.gnu.org/licenses/>.
  *
- * -------------------------------------------------------------------------
+ * -----------------------------------------------------------------------
  */
 
 
-#ifndef MAIN_WINDOW_H
-#define MAIN_WINDOW_H
+#ifndef GNSS_SDR_MONITOR_MAIN_WINDOW_H_
+#define GNSS_SDR_MONITOR_MAIN_WINDOW_H_
 
-#include <QMainWindow>
-#include <QAbstractTableModel>
-#include <QtNetwork/QUdpSocket>
-#include <QSettings>
-#include <QQmlApplicationEngine>
-#include <QQuickWidget>
-#include <QQuickView>
-#include <QQuickItem>
-#include <QGeoCoordinate>
-
-#include "gnss_synchro.h"
+#include "altitude_widget.h"
 #include "channel_table_model.h"
-#include "qcustomplot.h"
+#include "dop_widget.h"
+#include "gnss_synchro.pb.h"
+#include "monitor_pvt.pb.h"
+#include "monitor_pvt_wrapper.h"
+#include "telecommand_widget.h"
+#include <QAbstractTableModel>
+#include <QChart>
+#include <QChartView>
+#include <QMainWindow>
+#include <QQuickWidget>
+#include <QSettings>
+#include <QTimer>
+#include <QXYSeries>
+#include <QtNetwork/QUdpSocket>
 
-namespace Ui {
-class Main_Window;
+namespace Ui
+{
+class MainWindow;
 }
 
-class Main_Window : public QMainWindow
+namespace QtCharts
+{
+class QChart;
+}
+
+class MainWindow : public QMainWindow
 {
     Q_OBJECT
-    //Q_PROPERTY(QGeoCoordinate position READ position WRITE set_position NOTIFY position_changed)
 
 public:
-    explicit Main_Window(QWidget *parent = nullptr);
-    ~Main_Window();
-    std::vector<Gnss_Synchro> read_gnss_synchro(char buff[], int bytes);
-    void save_settings();
-    void load_settings();
+    explicit MainWindow(QWidget *parent = nullptr);
+    ~MainWindow();
 
-private:
-    Ui::Main_Window *ui;
-    //QQmlApplicationEngine *engine;
-    QQuickWidget *map_widget;
-    //QQuickView *map;
-    QQuickItem *item;
-    QTimer *timer;
-    Channel_Table_Model *model;
-    QUdpSocket *socket;
-    std::vector<Gnss_Synchro> stocks;
-    std::vector<int> channels;
-    unsigned int port;
-    QSettings settings;
-
-    QAction *start;
-    QAction *stop;
-    QAction *clear;
-
-    int buffer_size;
+    gnss_sdr::Observables readGnssSynchro(char buff[], int bytes);
+    gnss_sdr::MonitorPvt readMonitorPvt(char buff[], int bytes);
+    void saveSettings();
+    void loadSettings();
 
 public slots:
-    void toggle_capture();
-    void add_entry();
-    void clear_entries();
-    //void set_map_location();
+    void toggleCapture();
+    void receiveGnssSynchro();
+    void receiveMonitorPvt();
+    void clearEntries();
     void quit();
-    void show_preferences();
-    void set_port();
+    void showPreferences();
+    void setPort();
+    void expandPlot(const QModelIndex &index);
+    void closePlots();
+    void deletePlots();
+    void about();
 
+protected:
+    void closeEvent(QCloseEvent *event) override;
+
+private:
+    void updateChart(QtCharts::QChart *chart, QtCharts::QXYSeries *series, const QModelIndex &index);
+
+    Ui::MainWindow *ui;
+
+    QDockWidget *m_mapDockWidget;
+    QDockWidget *m_telecommandDockWidget;
+    QDockWidget *m_altitudeDockWidget;
+    QDockWidget *m_DOPDockWidget;
+
+    QQuickWidget *m_mapWidget;
+    TelecommandWidget *m_telecommandWidget;
+    AltitudeWidget *m_altitudeWidget;
+    DOPWidget *m_DOPWidget;
+
+    ChannelTableModel *m_model;
+    QUdpSocket *m_socketGnssSynchro;
+    QUdpSocket *m_socketMonitorPvt;
+    gnss_sdr::Observables m_stocks;
+    MonitorPvtWrapper *m_monitorPvtWrapper;
+    gnss_sdr::MonitorPvt m_monitorPvt;
+    std::vector<int> m_channels;
+    quint16 m_portGnssSynchro;
+    quint16 m_portMonitorPvt;
+    QSettings m_settings;
+    QTimer m_updateTimer;
+
+    QAction *m_start;
+    QAction *m_stop;
+    QAction *m_clear;
+    QAction *m_closePlotsAction;
+
+    int m_bufferSize;
+
+    std::map<int, QtCharts::QChartView *> m_plotsConstellation;
+    std::map<int, QtCharts::QChartView *> m_plotsCn0;
+    std::map<int, QtCharts::QChartView *> m_plotsDoppler;
 };
 
-#endif // MAIN_WINDOW_H
+#endif  // GNSS_SDR_MONITOR_MAIN_WINDOW_H_

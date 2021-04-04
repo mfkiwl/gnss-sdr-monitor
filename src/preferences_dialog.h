@@ -4,12 +4,12 @@
  *
  * \author Álvaro Cebrián Juan, 2018. acebrianjuan(at)gmail.com
  *
- * -------------------------------------------------------------------------
+ * -----------------------------------------------------------------------
  *
- * Copyright (C) 2010-2018  (see AUTHORS file for a list of contributors)
+ * Copyright (C) 2010-2019  (see AUTHORS file for a list of contributors)
  *
  * GNSS-SDR is a software defined Global Navigation
- *          Satellite Systems receiver
+ *      Satellite Systems receiver
  *
  * This file is part of GNSS-SDR.
  *
@@ -26,33 +26,33 @@
  * You should have received a copy of the GNU General Public License
  * along with GNSS-SDR. If not, see <https://www.gnu.org/licenses/>.
  *
- * -------------------------------------------------------------------------
+ * -----------------------------------------------------------------------
  */
 
 
-#ifndef PREFERENCES_DIALOG_H
-#define PREFERENCES_DIALOG_H
+#ifndef GNSS_SDR_MONITOR_PREFERENCES_DIALOG_H_
+#define GNSS_SDR_MONITOR_PREFERENCES_DIALOG_H_
 
 #include <QDialog>
 
-namespace Ui {
-class Preferences_Dialog;
+namespace Ui
+{
+class PreferencesDialog;
 }
 
-class Preferences_Dialog : public QDialog
+class PreferencesDialog : public QDialog
 {
     Q_OBJECT
 
 public:
-    explicit Preferences_Dialog(QWidget *parent = nullptr);
-    ~Preferences_Dialog();
+    explicit PreferencesDialog(QWidget *parent = nullptr);
+    ~PreferencesDialog();
 
 private:
-    Ui::Preferences_Dialog *ui;
+    Ui::PreferencesDialog *ui;
 
 private slots:
-    void on_accept();
-
+    void onAccept();
 };
 
-#endif // PREFERENCES_DIALOG_H
+#endif  // GNSS_SDR_MONITOR_PREFERENCES_DIALOG_H_

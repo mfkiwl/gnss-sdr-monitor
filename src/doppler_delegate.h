@@ -5,12 +5,12 @@
  *
  * \author Álvaro Cebrián Juan, 2018. acebrianjuan(at)gmail.com
  *
- * -------------------------------------------------------------------------
+ * -----------------------------------------------------------------------
  *
- * Copyright (C) 2010-2018  (see AUTHORS file for a list of contributors)
+ * Copyright (C) 2010-2019  (see AUTHORS file for a list of contributors)
  *
  * GNSS-SDR is a software defined Global Navigation
- *          Satellite Systems receiver
+ *      Satellite Systems receiver
  *
  * This file is part of GNSS-SDR.
  *
@@ -27,39 +27,35 @@
  * You should have received a copy of the GNU General Public License
  * along with GNSS-SDR. If not, see <https://www.gnu.org/licenses/>.
  *
- * -------------------------------------------------------------------------
+ * -----------------------------------------------------------------------
  */
 
 
-#ifndef DOPPLER_DELEGATE_H
-#define DOPPLER_DELEGATE_H
+#ifndef GNSS_SDR_MONITOR_DOPPLER_DELEGATE_H_
+#define GNSS_SDR_MONITOR_DOPPLER_DELEGATE_H_
 
 #include <QStyledItemDelegate>
-#include "qcustomplot.h"
 
-class Doppler_Delegate : public QStyledItemDelegate
+class DopplerDelegate : public QStyledItemDelegate
 {
 public:
-    Doppler_Delegate(QWidget *parent = nullptr);
-    ~Doppler_Delegate();
+    DopplerDelegate(QWidget *parent = nullptr);
+    ~DopplerDelegate();
+
+public slots:
+    void setBufferSize(int size);
 
 protected:
     void paint(QPainter *painter, const QStyleOptionViewItem &option,
-               const QModelIndex &index) const;
-    QSize sizeHint(const QStyleOptionViewItem &option,
-                   const QModelIndex &index) const;
+        const QModelIndex &index) const;
 
-    bool editorEvent(QEvent *event, QAbstractItemModel *model,
-                     const QStyleOptionViewItem &option, const QModelIndex &index);
+    QSize sizeHint(const QStyleOptionViewItem &option,
+        const QModelIndex &index) const;
 
 private:
-    mutable std::vector<int> channels_id;
-    mutable std::map<int, QCustomPlot*> plots;
+    void drawGuides(QPainter *painter, QRect cellRect, QRect sparklineRect, QRect textRect) const;
 
-signals:
-
-public slots:
-
+    int m_bufferSize;
 };
 
-#endif // DOPPLER_DELEGATE_H
+#endif  // GNSS_SDR_MONITOR_DOPPLER_DELEGATE_H_
